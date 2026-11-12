@@ -1,0 +1,11 @@
+# Contenido personal y copias de seguridad
+wallpaper/
+*.backup
+*.backup-*
+*.bak
+
+# Archivos temporales
+*.tmp
+*.swp
+*~
+.DS_Store
