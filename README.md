@@ -1,4 +1,4 @@
-# Conky Bosh to the Basic
+# Bosh To The Basic
 
 **Una configuración clásica de Conky, adaptada a Linux moderno.**
 
