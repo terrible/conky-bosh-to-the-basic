@@ -8,6 +8,10 @@ El proyecto incluye un **script de instalación automática (`install.sh`)** que
 
 La instalación es sencilla: basta con ejecutar el script incluido en el repositorio. Las dependencias del sistema deben instalarse previamente.
 
+## Vista previa
+
+![Vista previa de Bosh To The Basic](bosh-to-the-basic/images/preview.png)
+
 ## Estado del proyecto
 
 - **Entorno verificado:** Fedora 45, KDE Plasma 6.8.2 y Wayland mediante Xwayland.
