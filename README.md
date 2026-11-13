@@ -1,9 +1,12 @@
 # Bosh To The Basic
 
-**Una configuración clásica de Conky, adaptada a Linux moderno.**
+**Una configuración clásica de Conky, adaptada a Linux moderno, con instalación automatizada.**
 
-Bosh To The Basic es una adaptación personal de Hybrid Back To Basic, con detección de distribución,
-hardware y red, métricas del sistema y ajustes para KDE Plasma.
+Bosh To The Basic ofrece detección de distribución, hardware y red, métricas del sistema y ajustes para KDE Plasma.
+
+El proyecto incluye un **script de instalación automática (`install.sh`)** que prepara e instala el tema, adapta las rutas de configuración, conserva una copia de seguridad de la instalación anterior y configura el inicio automático en KDE Plasma.
+
+La instalación es sencilla: basta con ejecutar el script incluido en el repositorio. Las dependencias del sistema deben instalarse previamente.
 
 ## Estado del proyecto
 
