@@ -1,4 +1,4 @@
-BACK TO BASIC - ADAPTACION PARA FEDORA 45 / KDE PLASMA / WAYLAND
+BOSH TO THE BASIC - ADAPTACION PARA FEDORA 45 / KDE PLASMA / WAYLAND
 ================================================================
 
 Esta adaptacion conserva las imagenes y el dibujo Cairo del paquete original.
@@ -30,7 +30,7 @@ INSTALACION
    ./install.sh
 4. El instalador configura el inicio automatico en KDE.
 5. Para probar Conky manualmente:
-   conky -c "$HOME/.config/conky/back-to-basic/back-to-basic.conf" -d
+   conky -c "$HOME/.config/conky/bosh-to-the-basic/bosh-to-the-basic.conf" -d
 
 NOTAS
 - La posicion de la ventana puede requerir ajustes en KDE Wayland/Xwayland.

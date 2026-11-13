@@ -1,6 +1,6 @@
 --[[
-To call this script in Conky, use the following (assuming that you save this script to ~/.config/conky/back-to-basic/lua/back-to-basic.lua):
-	lua_load = '~/.config/conky/back-to-basic/lua/back-to-basic.lua',
+To call this script in Conky, use the following (assuming that you save this script to ~/.config/conky/bosh-to-the-basic/lua/bosh-to-the-basic.lua):
+	lua_load = '~/.config/conky/bosh-to-the-basic/lua/bosh-to-the-basic.lua',
     lua_draw_hook_pre = 'conky_main'
 ]]
 
@@ -120,7 +120,7 @@ function draw_elements(line_sketches_toggle)
     -- this is to solve transparent issue when render logo with conky image object
     local function draw_logo(cr)
         local w, h = 0, 0
-        local imagefile = home_dir .. "/.config/conky/back-to-basic/images/distro-1a.png"
+        local imagefile = home_dir .. "/.config/conky/bosh-to-the-basic/images/distro-1a.png"
         local image = cairo_image_surface_create_from_png (imagefile)
     
         w = cairo_image_surface_get_width (image)

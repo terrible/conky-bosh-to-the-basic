@@ -2,10 +2,10 @@
 set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SOURCE="$DIR/back-to-basic"
-TARGET="${CONKY_TARGET:-$HOME/.config/conky/back-to-basic}"
+SOURCE="$DIR/bosh-to-the-basic"
+TARGET="${CONKY_TARGET:-$HOME/.config/conky/bosh-to-the-basic}"
 AUTOSTART="${CONKY_AUTOSTART:-$HOME/.config/autostart}"
-DESKTOP_FILE="$AUTOSTART/conky-back-to-basic.desktop"
+DESKTOP_FILE="$AUTOSTART/conky-bosh-to-the-basic.desktop"
 
 CONKY_BIN="$(command -v conky || true)"
 
@@ -27,8 +27,8 @@ if [[ -z "$CONKY_BIN" ]]; then
     exit 1
 fi
 
-if [[ ! -f "$SOURCE/back-to-basic.conf" ]]; then
-    echo "ERROR: No se encuentra back-to-basic.conf"
+if [[ ! -f "$SOURCE/bosh-to-the-basic.conf" ]]; then
+    echo "ERROR: No se encuentra bosh-to-the-basic.conf"
     exit 1
 fi
 
@@ -46,12 +46,12 @@ rm -rf "$STAGING"
 mkdir -p "$STAGING"
 cp -a "$SOURCE/." "$STAGING/"
 
-if [[ ! -f "$STAGING/back-to-basic.conf" ]]; then
+if [[ ! -f "$STAGING/bosh-to-the-basic.conf" ]]; then
     echo "ERROR: La copia temporal está incompleta."
     exit 1
 fi
 
-sed -i "s|@CONKY_DIR@|$TARGET|g" "$STAGING/back-to-basic.conf"
+sed -i "s|@CONKY_DIR@|$TARGET|g" "$STAGING/bosh-to-the-basic.conf"
 
 find "$STAGING/scripts" -type f -name "*.sh" -exec chmod +x {} +
 
@@ -75,9 +75,9 @@ trap - EXIT
 cat > "$DESKTOP_FILE" <<DESKTOP
 [Desktop Entry]
 Type=Application
-Name=Conky Back To Basic
+Name=Conky Bosh To The Basic
 Comment=Monitor del sistema
-Exec=/bin/sh -c "sleep 8; $CONKY_BIN -c $TARGET/back-to-basic.conf -d"
+Exec=/bin/sh -c "sleep 8; $CONKY_BIN -c $TARGET/bosh-to-the-basic.conf -d"
 Terminal=false
 X-KDE-autostart-enabled=true
 DESKTOP
@@ -90,4 +90,4 @@ echo "Ubicación: $TARGET"
 echo "Inicio automático configurado."
 echo
 echo "Para iniciar Conky ahora:"
-echo "$CONKY_BIN -c $TARGET/back-to-basic.conf -d"
+echo "$CONKY_BIN -c $TARGET/bosh-to-the-basic.conf -d"

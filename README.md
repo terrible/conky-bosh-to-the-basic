@@ -2,7 +2,7 @@
 
 **Una configuración clásica de Conky, adaptada a Linux moderno.**
 
-Adaptación personal de Hybrid Back To Basic, con detección de distribución,
+Bosh To The Basic es una adaptación personal de Hybrid Back To Basic, con detección de distribución,
 hardware y red, métricas del sistema y ajustes para KDE Plasma.
 
 ## Estado del proyecto
@@ -87,7 +87,7 @@ El instalador:
 2. Prepara una copia temporal del tema.
 3. Sustituye las rutas internas del proyecto.
 4. Conserva una copia de seguridad de la instalación anterior.
-5. Instala el tema en `~/.config/conky/back-to-basic`.
+5. Instala el tema en `~/.config/conky/bosh-to-the-basic`.
 6. Configura el inicio automático de KDE Plasma.
 
 No instala dependencias del sistema automáticamente.
@@ -95,22 +95,22 @@ No instala dependencias del sistema automáticamente.
 Para iniciar Conky manualmente:
 
 ```bash
-conky -c "$HOME/.config/conky/back-to-basic/back-to-basic.conf" -d
+conky -c "$HOME/.config/conky/bosh-to-the-basic/bosh-to-the-basic.conf" -d
 ```
 
 ## Configuración
 
 Archivo principal:
 
-`back-to-basic/back-to-basic.conf`
+`bosh-to-the-basic/bosh-to-the-basic.conf`
 
 Scripts auxiliares:
 
-`back-to-basic/scripts/`
+`bosh-to-the-basic/scripts/`
 
 Código Lua:
 
-`back-to-basic/lua/`
+`bosh-to-the-basic/lua/`
 
 El parámetro `xinerama_head` y las coordenadas de la ventana pueden
 requerir ajustes según la cantidad, resolución y disposición de los monitores.
@@ -122,7 +122,7 @@ La posición exacta de la ventana depende de KDE/KWin.
 
 La documentación específica del entorno de referencia se encuentra en:
 
-`back-to-basic/README-FEDORA45.txt`
+`bosh-to-the-basic/README-FEDORA45.txt`
 
 Incluye detalles de hardware, sensores, almacenamiento y configuración gráfica.
 
