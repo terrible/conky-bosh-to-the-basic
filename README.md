@@ -8,6 +8,38 @@ El proyecto incluye un **script de instalación automática (`install.sh`)** que
 
 La instalación es sencilla: basta con ejecutar el script incluido en el repositorio. Las dependencias del sistema deben instalarse previamente.
 
+## Instalación rápida
+
+**Requisitos:** Linux, Conky con soporte Lua, Cairo e Imlib2, y la tipografía Noto Sans. La integración de inicio automático está preparada para KDE Plasma.
+
+**1. Instala Conky** según tu distribución:
+
+Fedora:
+```bash
+sudo dnf install conky
+```
+
+Arch Linux, CachyOS y EndeavourOS:
+```bash
+sudo pacman -S conky
+```
+
+Debian, Ubuntu y Linux Mint:
+```bash
+sudo apt install conky-all
+```
+
+**2. Descarga e instala Bosh To The Basic:**
+
+```bash
+git clone https://github.com/terrible/conky-bosh-to-the-basic.git
+cd conky-bosh-to-the-basic
+chmod +x install.sh
+./install.sh
+```
+
+El instalador configura el tema y el inicio automático en KDE Plasma. **No instala las dependencias del sistema** y no necesita ejecutarse como administrador.
+
 ## Vista previa
 
 ![Vista previa de Bosh To The Basic](bosh-to-the-basic/images/preview.png)
