@@ -1,159 +1,105 @@
---[[
-To call this script in Conky, use the following (assuming that you save this script to ~/.config/conky/bosh-to-the-basic/lua/bosh-to-the-basic.lua):
-	lua_load = '~/.config/conky/bosh-to-the-basic/lua/bosh-to-the-basic.lua',
-    lua_draw_hook_pre = 'conky_main'
-]]
-
-g_main_colour = "0xa8a8a8"
-home_dir = os.getenv("HOME") or "."
-
-
+-- Only text measurement uses Cairo. OPT-01 does not install a draw hook.
 require 'cairo'
-require 'cairo_xlib'
 
+local surface, cr, bosh_extents
 
--- global helper functions
-function rgb_to_r_g_b(colour, alpha)
-    return ((colour / 0x10000) % 0x100) / 255., ((colour / 0x100) % 0x100) / 255., (colour % 0x100) / 255., alpha
+function conky_bosh_shutdown()
+    if cr then cairo_destroy(cr) end
+    if surface then cairo_surface_destroy(surface) end
+    cr, surface, bosh_extents = nil, nil, nil
 end
 
-
-function to_boolean(p_str)
-    if p_str == "true" or p_str == "True" then
-        return true
-    elseif p_str == "false" or p_str == "False" then
-        return false
-    else
-        return false
-    end
+function conky_bosh_percent(value)
+    local n = tonumber(value)
+    if n and n >= 0 and n <= 100 then return math.floor(n + 0.5) end
+    return 0
 end
 
-
-line_settings = {
-    -- vertical
-    { x1 = 30, y1 = 0, x2 = 30, y2 = 750 },
-    { x1 = 140, y1 = 0, x2 = 140, y2 = 750 },
-    { x1 = 250, y1 = 0, x2 = 250, y2 = 750 },
-    { x1 = 275, y1 = 0, x2 = 275, y2 = 750 },
-    { x1 = 536, y1 = 0, x2 = 536, y2 = 750 },
-
-    -- horizontal
-    { x1 = 0, y1 = 30, x2 = 470, y2 = 30 },
-    { x1 = 0, y1 = 60, x2 = 470, y2 = 60 },
-    { x1 = 0, y1 = 118, x2 = 470, y2 = 118 },
-    { x1 = 0, y1 = 406, x2 = 270, y2 = 406 },
-    { x1 = 0, y1 = 508, x2 = 270, y2 = 508 },
-    { x1 = 0, y1 = 610, x2 = 270, y2 = 610 },
-    { x1 = 0, y1 = 710, x2 = 270, y2 = 710 },
-}
-
-
-circle_settings = {
-    { x = 230, y = 50, radius = 18.0, start_angle = 0.0, end_angle = 360.0 },
-    { x = 50, y = 230, radius = 18.0, start_angle = 0.0, end_angle = 360.0 },
-    { x = 230, y = 280, radius = 18.0, start_angle = 0.0, end_angle = 360.0 },
-    { x = 50, y = 460, radius = 18.0, start_angle = 0.0, end_angle = 360.0 },
-    { x = 230, y = 510, radius = 18.0, start_angle = 0.0, end_angle = 360.0 },
-    { x = 50, y = 690, radius = 18.0, start_angle = 0.0, end_angle = 360.0 },
-
-    { x = 30, y = 255, radius = 50.0, start_angle = 0.0, end_angle = 360.0 },
-    { x = 250, y = 255, radius = 50.0, start_angle = 0.0, end_angle = 360.0 },
-    { x = 30, y = 485, radius = 50.0, start_angle = 0.0, end_angle = 360.0 },
-    { x = 250, y = 485, radius = 50.0, start_angle = 0.0, end_angle = 360.0 },
-
-    -- { x = 140, y = 140, radius = 75.0, start_angle = 0.0, end_angle = 360.0 },
-    -- { x = 140, y = 370, radius = 75.0, start_angle = 0.0, end_angle = 360.0 },
-    -- { x = 140, y = 600, radius = 75.0, start_angle = 0.0, end_angle = 360.0 },
-
-    -- { x = 140, y = 140, radius = 25.0, start_angle = 0.0, end_angle = 360.0 },
-    -- { x = 140, y = 370, radius = 25.0, start_angle = 0.0, end_angle = 360.0 },
-    -- { x = 140, y = 600, radius = 11.0, start_angle = 0.0, end_angle = 360.0 },
-}
-
-
-function draw_elements(line_sketches_toggle)
-    local function draw_lines(cr)
-        for x in pairs(line_settings) do
-            local l_item = line_settings[x]
-            
-            cairo_move_to (cr, l_item.x1, l_item.y1)
-            cairo_line_to (cr, l_item.x2, l_item.y2)
-            cairo_stroke (cr)
+local swap_checked, swap_present
+function conky_bosh_swap_present()
+    local now = os.time()
+    if not swap_checked or now < swap_checked or now - swap_checked >= 10 then
+        swap_checked = now
+        swap_present = 0
+        local swaps = io.open('/proc/swaps', 'r')
+        if swaps then
+            swaps:read('*l') -- Header
+            if swaps:read('*l') then swap_present = 1 end
+            swaps:close()
         end
     end
-    
-    
-    local function draw_circles(cr)
-        -- xc = 250.0
-        -- yc = 255.0
-        -- radius = 50.0
-        -- angle1 = 0.0  * (2 * math.pi / 360) - math.pi / 2
-        -- angle2 = 360.0 * (2 * math.pi / 360) - math.pi / 2
-    
-        for x in pairs(circle_settings) do
-            local c_item = circle_settings[x]
-            
-            local angle_s = c_item.start_angle * (2 * math.pi / 360) - math.pi / 2
-            local angle_e = c_item.end_angle * (2 * math.pi / 360) - math.pi / 2
-    
-            cairo_arc (cr, c_item.x, c_item.y, c_item.radius, angle_s, angle_e)
-            cairo_stroke (cr)
-        end
-    end
-    
-    
-    local function draw_line_sketches(cr, line_sketches_toggle)
-        if to_boolean(line_sketches_toggle) == false then 
-            return
-        end
-    
-        local line_colour, line_alpha, line_thick = g_main_colour, 0.25, 1.0
-    
-        cairo_set_source_rgba(cr, rgb_to_r_g_b(line_colour, line_alpha))
-        cairo_set_line_width(cr, line_thick)
-        
-        draw_lines(cr)
-        draw_circles(cr)
-    end
-    
-    
-    -- this is to solve transparent issue when render logo with conky image object
-    local function draw_logo(cr)
-        local w, h = 0, 0
-        local imagefile = home_dir .. "/.config/conky/bosh-to-the-basic/images/distro-1a.png"
-        local image = cairo_image_surface_create_from_png (imagefile)
-    
-        w = cairo_image_surface_get_width (image)
-        h = cairo_image_surface_get_height (image)
-    
-        cairo_translate (cr, 495.0, 30.0)
-        -- cairo_rotate (cr, 45* math.pi/180)
-        cairo_scale  (cr, 40.0/w, 40.0/h)
-        -- cairo_translate (cr, -0.5*w, -0.5*h)
-    
-        cairo_set_source_surface (cr, image, 0, 0)
-        cairo_paint (cr)
-        cairo_surface_destroy (image)
-    end
-
-
-    if conky_window == nil then return end
-
-    local cs = cairo_xlib_surface_create(conky_window.display,
-        conky_window.drawable,
-        conky_window.visual,
-        conky_window.width,
-        conky_window.height)
-    local cr = cairo_create(cs)
-
-    draw_line_sketches(cr, line_sketches_toggle)
-    draw_logo(cr)           -- logo needs to be render last due to cairo_set_source_surface
-
-    cairo_surface_destroy(cs)
-    cairo_destroy(cr)
+    return swap_present
 end
 
+function conky_bosh_center_row(mode, argument)
+    if not cr then
+        surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1)
+        cr = cairo_create(surface)
+        cairo_select_font_face(cr, "Noto Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
+        bosh_extents = cairo_text_extents_t:create()
+        tolua.takeownership(bosh_extents)
+    end
+    local size = mode == "speed" and 9 or 8
+    cairo_set_font_size(cr, size * 96 / 72)
 
-function conky_main(line_sketches_toggle)
-    draw_elements(line_sketches_toggle)
+    local function centered(value, center, color)
+        cairo_text_extents(cr, value, bosh_extents)
+
+        local x = math.floor(
+            center - bosh_extents.width / 2
+            - bosh_extents.x_bearing + 0.5
+        )
+
+        return "${goto " .. x .. "}"
+            .. (color and "${color" .. color .. "}" or "")
+            .. value .. "${color}"
+    end
+
+    local result = {}
+
+    if mode == "cpu" then
+        for n = 1, math.min(4, tonumber(argument) or 0) do
+            local value = conky_parse(
+                "${cpu cpu" .. n .. "}"
+            )
+
+            result[n] = centered(
+                "C" .. n .. " " .. value .. "%",
+                34 + (n - 1) * 67, 2
+            )
+        end
+
+    elseif mode == "title" then
+        result[1] = centered("BAJADA", 67.5, 3)
+        result[2] = centered("SUBIDA", 201.5, 2)
+
+    elseif mode == "speed" or mode == "total" then
+        local iface = argument
+        if iface and iface:match("^[%w_.:-]+$") then
+            local down, up
+
+            if mode == "speed" then
+                down = conky_parse(
+                    "${downspeed " .. iface .. "}"
+                ) .. "/s"
+
+                up = conky_parse(
+                    "${upspeed " .. iface .. "}"
+                ) .. "/s"
+            else
+                down = "Total: " .. conky_parse(
+                    "${totaldown " .. iface .. "}"
+                )
+
+                up = "Total: " .. conky_parse(
+                    "${totalup " .. iface .. "}"
+                )
+            end
+
+            result[1] = centered(down, 67.5)
+            result[2] = centered(up, 201.5)
+        end
+    end
+
+    return table.concat(result)
 end

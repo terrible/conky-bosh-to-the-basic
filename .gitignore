@@ -9,3 +9,10 @@ wallpaper/
 *.swp
 *~
 .DS_Store
+
+# Caché y bytecode Python
+__pycache__/
+*.py[cod]
+
+# Entornos de laboratorio y resultados temporales
+.bosh-lab/

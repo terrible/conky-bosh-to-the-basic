@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -u
 
+# shellcheck source=/etc/os-release
 . /etc/os-release
 
 name="${NAME:-Linux}"

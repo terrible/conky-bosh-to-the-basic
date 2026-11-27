@@ -1,214 +1,70 @@
 # Bosh To The Basic
 
-**Una configuración clásica de Conky, adaptada a Linux moderno, con instalación automatizada.**
+[Español](README.es.md)
 
-Bosh To The Basic ofrece detección de distribución, hardware y red, métricas del sistema y ajustes para KDE Plasma.
+**A classic-style Conky system panel, adapted for modern Linux desktops.**
 
-El proyecto incluye un **script de instalación automática (`install.sh`)** que prepara e instala el tema, adapta las rutas de configuración, conserva una copia de seguridad de la instalación anterior y configura el inicio automático en KDE Plasma.
+The v1.1.0 engineering candidate is frozen. It passed local and rootless Arch/Fedora-container test suites, isolated Xvfb checks, a physical benchmark, and a maintainer-reported visual inspection on KDE Plasma 6.8.3 Wayland/Xwayland/KWin. Public distribution remains blocked by unresolved upstream licensing.
 
-La instalación es sencilla: basta con ejecutar el script incluido en el repositorio. Las dependencias del sistema deben instalarse previamente.
+## What it shows
 
-## Instalación rápida
+- Clock, date, uptime, CPU total and up to four per-core bars.
+- Memory, optional swap, root storage and top processes.
+- Intel and NVIDIA GPU load, NVIDIA memory and available temperatures.
+- Active network interface, address, transfer totals and separate traffic graphs.
+- A 273 px configured panel using the frozen OPT-01 typography, spacing and blue/yellow palette.
 
-**Requisitos:** Linux, Conky con soporte Lua, Cairo e Imlib2, y la tipografía Noto Sans. La integración de inicio automático está preparada para KDE Plasma.
+Optional hardware sources degrade to `N/D` or are omitted where OPT-01 is conditional. NVIDIA uses `nvidia-smi`; the Intel collector is an optional repository resource and is not installed or enabled by the theme installer.
 
-**1. Instala Conky** según tu distribución:
+## Architecture
 
-Fedora:
-```bash
-sudo dnf install conky
-```
+Conky renders the X11 configuration and Lua/Cairo text and graph helpers. Python reads one bounded hardware snapshot and renders the GPU and temperature rows. Small Bash helpers detect network and distribution information. The user-scoped Python installer manages the theme, autostart migration, private backups and rollback; the matching uninstaller preserves later user edits. Neither installs system packages or requires root.
 
-Arch Linux, CachyOS y EndeavourOS:
-```bash
-sudo pacman -S conky
-```
+## Compatibility evidence
 
-Debian, Ubuntu y Linux Mint:
-```bash
-sudo apt install conky-all
-```
+| Environment | Evidence | Limit |
+|---|---|---|
+| EndeavourOS host | 90 automated tests; isolated Conky/Xvfb smoke and physical benchmark | Physical validation on the QA host; no claim for other hardware |
+| Arch Linux | 90 tests in a rootless, network-disabled container | Not a full KDE desktop test |
+| Fedora | 90 tests in a rootless, network-disabled container | Not a full KDE desktop test |
+| X11/Xvfb | Isolated render and synthetic pixel comparison; explicit X11 backend | Xvfb has no compositor |
+| KDE Plasma 6.8.3 Wayland/Xwayland/KWin | Maintainer-reported QA-21.4 inspection on a separate output confirmed transparency, position, design, fonts, colors, Intel bar, NVIDIA VRAM/load/decimal temperature, CPU, RAM, storage, network and processes | The temporary window used a distinct class; KWin rules for the installed/original class were not validated |
+| Native Wayland backend | Not supported as the reference renderer | Do not switch from X11/Xwayland |
 
-**2. Descarga e instala Bosh To The Basic:**
+Conky needs Lua, Cairo and X11 support. Noto Sans is used by the panel. The target distributions are Arch Linux, EndeavourOS and Fedora KDE; container results establish software-test coverage only, not full desktop support.
 
-```bash
-git clone https://github.com/terrible/conky-bosh-to-the-basic.git
-cd conky-bosh-to-the-basic
-chmod +x install.sh
+## Performance evidence
+
+On the QA-21.3 EndeavourOS test host (Intel Core i5-3330, GTX 1650), three alternating 60-second samples per variant produced median one-core CPU of **9.845% for OPT-01** and **4.310% for the candidate** (about 56% lower in this run). NVIDIA polling was 48 versus 12 queries per minute, with no failed queries. Both panels measured 283×893 during the physical runs. These are measurements from one host and the isolated Xvfb/cgroup protocol, not a promise for other systems. Full samples and methodology are in [the performance report](docs/PERFORMANCE.md); QA-19 results remain historical there.
+
+The corrected synthetic Xvfb comparison measured 283×927 for both variants with ImageMagick AE=0; physical Xvfb smoke/benchmark geometry was 283×893 for both. Xvfb does not validate KWin composition or real Wayland transparency; QA-21.4 is a separate human-reported desktop inspection.
+
+Conky emitted a font-initialization warning in the test logs. The maintainer reported no visible font defect in QA-21.4; the warning is documented and was not suppressed.
+
+## Candidate evaluation
+
+**Do not distribute or install this candidate for general use while its license gate is unresolved.** For authorized maintainer QA in a disposable HOME, the implemented interface is:
+
+```sh
+./install.sh --dry-run
 ./install.sh
+./install.sh --verify
+./uninstall.sh --dry-run
+./uninstall.sh
 ```
 
-El instalador configura el tema y el inicio automático en KDE Plasma. **No instala las dependencias del sistema** y no necesita ejecutarse como administrador.
+The installer does not fetch dependencies. Install Conky and fonts using your distribution's package manager only when preparing a separate test environment. See [installation](docs/INSTALL.md), [recovery](docs/RECOVERY.md) and [security](SECURITY.md).
 
-## Vista previa
+For development, run `make test`, `make audit`, `make doctor` and `make benchmark`. The benchmark Make target is synthetic; it does not measure physical panel CPU. GitHub Actions is prepared for tests and static checks, but no remote run or publication is claimed.
 
-![Vista previa de Bosh To The Basic](bosh-to-the-basic/images/preview.png)
+## Bosh Linux ecosystem
 
-## Estado del proyecto
+Bosh To The Basic, Bosh Terminal and the planned Bosh Desktop are separate, modular projects. This repository contains only the Conky panel and its installer, resources and QA tools.
 
-- **Entorno verificado:** Fedora 45, KDE Plasma 6.8.2 y Wayland mediante Xwayland.
-- **Hardware de referencia:** Intel Core i5-3330, gráficos Intel integrados
-  y NVIDIA GeForce GTX 1650.
-- **Otras distribuciones:** Fedora, Arch Linux y Debian, incluidas sus
-  derivadas, contempladas en el diseño, pero pendientes de pruebas completas.
-- **Entorno gráfico:** KDE Plasma. El posicionamiento puede variar según
-  el gestor de ventanas y la sesión gráfica.
+## History and credits
 
-## Características
+This project revives a classic Conky appearance and adapts it for a modern Linux setup. The visual lineage is attributed to **Hybrid Back To Basic** by **Haidir (dirn)**, reference version 1.0.1: [upstream Bitbucket repository](https://bitbucket.org/dirn-typo/back-to-basic) and [GNOME-Look project page](https://www.gnome-look.org/p/1578329). The upstream README says the author of the earlier Conky configuration is unknown.
 
-- Monitorización de CPU, RAM y SWAP.
-- Temperaturas del procesador.
-- Métricas de GPU Intel y NVIDIA, según hardware y herramientas disponibles.
-- Información de almacenamiento.
-- Detección automática de la interfaz de red.
-- Dirección IP, tráfico y velocidad de descarga.
-- Lista de procesos activos.
-- Información de distribución Linux.
-- Gráficos y recursos visuales del tema original.
-- Fondo oscuro semitransparente y acento azul `#2b96c0`.
-- Configuración de dimensiones y posicionamiento para varios monitores.
-- Integración de inicio automático con KDE Plasma.
+The upstream v1.0.1 tree reviewed for QA-19 contains no `LICENSE`, `COPYING` or copyright notice that establishes redistribution terms. A historical Bosh README's mention of GPLv3 does not prove the terms for the exact derived code. **No license is assigned here; public redistribution is blocked pending evidence and authorization.** See [the license inventory](docs/LICENSE-INVENTORY.md). No wallpaper or third-party preview image is included in this candidate.
 
-Las métricas que dependen de hardware o herramientas específicas pueden
-no estar disponibles en todos los equipos.
-
-## Requisitos
-
-- Linux.
-- Conky con soporte Lua, Cairo e Imlib2.
-- Tipografía Noto Sans.
-
-### Instalación de Conky
-
-**Fedora:**
-
-```bash
-sudo dnf install conky
-```
-
-**Arch Linux, CachyOS y EndeavourOS:**
-
-```bash
-sudo pacman -S conky
-```
-
-**Debian, Ubuntu y Linux Mint:**
-
-```bash
-sudo apt install conky-all
-```
-
-Estas instrucciones indican los paquetes habituales; la disponibilidad
-de los componentes Lua/Cairo debe comprobarse en cada distribución.
-
-### Dependencias opcionales
-
-- `lm_sensors`: información de temperaturas.
-- `nvidia-smi`: métricas de GPU NVIDIA.
-- `intel-gpu-tools`: métricas de GPU Intel.
-- `iproute`: detección de interfaces y rutas de red.
-
-La ausencia de una herramienta opcional puede limitar determinadas métricas,
-pero no debería impedir el funcionamiento del resto del panel.
-
-## Instalación
-
-Desde la carpeta del proyecto:
-
-```bash
-chmod +x install.sh
-./install.sh
-```
-
-El instalador:
-
-1. Comprueba que Conky esté disponible.
-2. Prepara una copia temporal del tema.
-3. Sustituye las rutas internas del proyecto.
-4. Conserva una copia de seguridad de la instalación anterior.
-5. Instala el tema en `~/.config/conky/bosh-to-the-basic`.
-6. Configura el inicio automático de KDE Plasma.
-
-No instala dependencias del sistema automáticamente.
-
-Para iniciar Conky manualmente:
-
-```bash
-conky -c "$HOME/.config/conky/bosh-to-the-basic/bosh-to-the-basic.conf" -d
-```
-
-## Configuración
-
-Archivo principal:
-
-`bosh-to-the-basic/bosh-to-the-basic.conf`
-
-Scripts auxiliares:
-
-`bosh-to-the-basic/scripts/`
-
-Código Lua:
-
-`bosh-to-the-basic/lua/`
-
-El parámetro `xinerama_head` y las coordenadas de la ventana pueden
-requerir ajustes según la cantidad, resolución y disposición de los monitores.
-
-En sesiones Wayland, Conky puede ejecutarse mediante Xwayland.
-La posición exacta de la ventana depende de KDE/KWin.
-
-## Información de la adaptación Fedora 45
-
-La documentación específica del entorno de referencia se encuentra en:
-
-`bosh-to-the-basic/README-FEDORA45.txt`
-
-Incluye detalles de hardware, sensores, almacenamiento y configuración gráfica.
-
-## Wallpaper
-
-El wallpaper utilizado durante el desarrollo pertenece a una fuente externa:
-
-- Obra: Saber: Crimson Night — Fate.
-- Fuente: https://wall.alphacoders.com/big.php?i=1406350
-- Uso indicado por la fuente: privado y personal.
-
-Por ese motivo, el wallpaper no forma parte de la distribución pública.
-Cada usuario puede añadir su propio fondo de escritorio.
-
-## Historia del proyecto
-
-En 2009 ya utilizaba una configuración de Conky similar. Años después,
-decidí recuperar esa estética y adaptarla a un entorno Linux moderno,
-conservando el espíritu del escritorio original e incorporando nuevas
-métricas, compatibilidad y ajustes para mi equipo actual.
-
-**Una configuración clásica, adaptada al presente.**
-
-## Créditos y licencia
-
-Este proyecto está basado en **Hybrid Back To Basic**, una adaptación
-de Conky desarrollada por **Haidir (dirn)**.
-
-- Repositorio original:
-  https://bitbucket.org/dirn-typo/back-to-basic
-- Autor de Hybrid Back To Basic: Haidir (dirn).
-- Versión de referencia: 1.0.1.
-- Ficha original:
-  https://www.gnome-look.org/p/1578329
-
-Según el README original, el creador de la configuración Conky utilizada
-como base por Haidir es desconocido.
-
-La ficha de GNOME-Look indica GPLv3 como licencia del tema.
-Antes de publicar una versión derivada, deben conservarse los avisos
-de copyright y comprobarse las condiciones aplicables a cada recurso.
-
-Los logotipos, imágenes y otros recursos de terceros pueden estar sujetos
-a condiciones de uso independientes.
-
-## Autor
-
-**Bosh**
-
-Proyecto personal de recuperación, adaptación y personalización de Conky para Linux.
+The release gate requires a verifiable license/permission covering the v1.0.1-derived files, clarification or permission for the historically incorporated Conky configuration whose author is unknown, and licensing evidence for the five imported OPT-01 files. The maintainer must then choose a compatible license for original contributions and the combined distribution.

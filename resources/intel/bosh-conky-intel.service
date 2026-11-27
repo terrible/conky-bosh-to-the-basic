@@ -1,0 +1,32 @@
+[Unit]
+Description=Bosh Conky Intel GPU Monitor
+After=systemd-udev-trigger.service
+
+[Service]
+Type=exec
+ExecStart=/usr/bin/python3 -I /usr/local/libexec/bosh-conky-intel.py
+
+DynamicUser=yes
+SupplementaryGroups=video render
+
+CapabilityBoundingSet=CAP_PERFMON
+AmbientCapabilities=CAP_PERFMON
+NoNewPrivileges=yes
+
+RuntimeDirectory=bosh-conky
+RuntimeDirectoryMode=0755
+UMask=0077
+
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+PrivateTmp=yes
+RestrictSUIDSGID=yes
+
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Arch
+            image: docker.io/library/archlinux@sha256:bddb91b7a73f31ed6be307fc8ec75e5dd59ff8ccf6c5a1bbb8205f14702c6b4a
+            install: pacman -Syu --noconfirm bash python lua conky shellcheck make xorg-server-xvfb xorg-xauth
+          - name: Fedora
+            image: registry.fedoraproject.org/fedora@sha256:6440fc8f3481de718c4a4e1b5685d3d3b4b5407e0e89a26c3cab258b0d9c79dc
+            install: dnf -y install bash python3 lua conky ShellCheck make xorg-x11-server-Xvfb xorg-x11-xauth
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ matrix.image }}
+    steps:
+      - name: Install test tools
+        run: ${{ matrix.install }}
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
+      - name: Run isolated display, audit and tests
+        run: |
+          Xvfb :99 -screen 0 1024x768x24 -nolisten tcp >/tmp/xvfb.log 2>&1 &
+          export DISPLAY=:99
+          sleep 1
+          make audit
+          make test
