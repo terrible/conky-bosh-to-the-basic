@@ -16,10 +16,10 @@ jobs:
         include:
           - name: Arch
             image: docker.io/library/archlinux@sha256:bddb91b7a73f31ed6be307fc8ec75e5dd59ff8ccf6c5a1bbb8205f14702c6b4a
-            install: pacman -Syu --noconfirm bash python lua conky shellcheck make xorg-server-xvfb xorg-xauth
+            install: pacman -Syu --noconfirm bash python lua conky shellcheck make xorg-server-xvfb xorg-xauth util-linux shadow
           - name: Fedora
             image: registry.fedoraproject.org/fedora@sha256:6440fc8f3481de718c4a4e1b5685d3d3b4b5407e0e89a26c3cab258b0d9c79dc
-            install: dnf -y install bash python3 lua conky ShellCheck make xorg-x11-server-Xvfb xorg-x11-xauth
+            install: dnf -y install bash python3 lua conky ShellCheck make xorg-x11-server-Xvfb xorg-x11-xauth util-linux shadow-utils
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
     container:
@@ -32,9 +32,36 @@ jobs:
         with:
           persist-credentials: false
       - name: Run isolated display, audit and tests
+        shell: bash
         run: |
-          Xvfb :99 -screen 0 1024x768x24 -nolisten tcp >/tmp/xvfb.log 2>&1 &
-          export DISPLAY=:99
-          sleep 1
+          set -euo pipefail
+          work="$(mktemp -d /tmp/bosh-ci.XXXXXXXX)"
+          trap 'rm -rf -- "$work"' EXIT
+          useradd -M -U -d "$work/home" -s /bin/bash bosh-ci
+          mkdir "$work/home" "$work/source"
+          cp -a -- "$GITHUB_WORKSPACE/." "$work/source/"
+          chown -R bosh-ci:bosh-ci "$work"
+          runuser -u bosh-ci -- env -i HOME="$work/home" \
+            PATH=/usr/local/bin:/usr/bin:/bin LANG=C.UTF-8 \
+            bash -euo pipefail -s -- "$work/source" <<'BASH'
+          test "$(id -u)" -ne 0
+          cd "$1"
+          export DISPLAY=:99 XAUTHORITY="$HOME/.Xauthority"
+          xauth add "$DISPLAY" . "$(mcookie)"
+          Xvfb "$DISPLAY" -screen 0 1024x768x24 -nolisten tcp \
+            -auth "$XAUTHORITY" >"$HOME/xvfb.log" 2>&1 &
+          xvfb_pid=$!
+          cleanup() {
+            kill "$xvfb_pid" 2>/dev/null || true
+            wait "$xvfb_pid" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+          for _ in {1..50}; do
+            kill -0 "$xvfb_pid" || { cat "$HOME/xvfb.log"; exit 1; }
+            [[ -S /tmp/.X11-unix/X99 ]] && break
+            sleep 0.1
+          done
+          test -S /tmp/.X11-unix/X99
           make audit
           make test
+          BASH
